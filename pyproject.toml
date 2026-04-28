@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "game-couch"
+version = "0.1.0"
+description = "Local game-presence harness for sharing player-triggered game moments."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Pipseed AI" }]
+
+[project.scripts]
+game-couch = "game_couch.cli:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
