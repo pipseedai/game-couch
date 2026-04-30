@@ -30,6 +30,25 @@ Separate four responsibilities:
 
 The current MVP has coordinator/plugin/transport collapsed into local CLI code. The next stage should pull them apart without overbuilding.
 
+### Boundary contract for the testable stage
+
+The point of the split is not purity. It is so a goblin can change one layer without silently changing another.
+
+| Layer | Owns | Must not own yet | Testable-stage proof |
+| --- | --- | --- | --- |
+| Coordinator | session id, player/game labels, journal path, moment assembly, policy checks, transport selection | raw SSH commands, Discord API details, game-specific interpretation | fake runner + dry-run transport can create a journaled moment |
+| Runner | allowlisted host operations such as `capture_screenshot`, artifact staging/fetch, runner health | session policy, Discord posting, plugin semantics | local/fake/SSH runners expose the same operation result shape |
+| Plugin | context fields for `generic-screen`, future game-specific prompts/labels, capture requirements | remote execution, Discord formatting, persistent session state | `generic-screen` works with local or remote screenshots |
+| Transport / RTC seam | delivery of moment payloads/events to Discord or dry-run sinks | screenshot capture, game interpretation, journal authority | dry-run and Discord transports receive the same assembled moment payload |
+
+Minimum shared data shapes:
+
+- **Runner capture result**: `operation`, `host`, `artifact_path`, `media_type`, `captured_at`, `metadata`, `warnings`.
+- **Moment payload**: `session_id`, `game_id`, `player_label`, `trigger`, `note`, `artifact_path`, `plugin_context`, `created_at`.
+- **Journal event**: `event_type`, `session_id`, `created_at`, `payload`, `transport_result`.
+
+If a change needs a new shared shape, update this plan or an ADR before implementing the feature.
+
 ## RTC Direction
 
 Use “RTC” as a project question, not an immediate commitment to WebRTC everywhere.
@@ -62,6 +81,22 @@ Decision for now: **do SSH-first runner plumbing with a clean RTC/event seam**, 
 - Dry-run and fake-runner tests.
 - A documented manual test script for one real play session.
 - Session scrapbook/journal enough to review afterwards.
+
+### Minimum CLI story
+
+The exact flags may change during implementation, but the first runnable story should stay this small:
+
+```bash
+# one-time/local dry run
+game-couch start --game generic-screen --channel "#game-couch" --player-label "Saff"
+game-couch share --note "opening scene" --screenshot ./fixtures/moment.png --transport dry-run
+
+# real household test shape
+game-couch start --game generic-screen --channel "#game-couch" --player-label "Saff" --host bigchoof
+game-couch share --host bigchoof --note "look at this bit" --transport discord
+```
+
+The important behaviour is that `--host bigchoof` selects a configured runner target; it must not become arbitrary shell execution through the CLI.
 
 ### Out of scope
 
@@ -134,6 +169,19 @@ Done when:
 - Should Discord session creation be handled by OpenClaw tooling, a Discord bot token, or webhook plus existing channel conventions?
 - What is the first real game/test scenario? Generic desktop capture is enough technically, but the feel test needs an actual game.
 - Do Pip and Coda both need automatic notification/participation routing in v1, or is Pip-only acceptable for the first test?
+
+## Goblin Stop Lines
+
+Do not add these during the testable-stage issues unless a later issue explicitly asks for them:
+
+- persistent video streaming
+- WebRTC signalling servers
+- autonomous input/control
+- OCR/vision summaries as required plumbing
+- game-specific plugin work beyond `generic-screen`
+- arbitrary shell commands from Discord or CLI
+
+If the first manual eval proves one of these is necessary, file a follow-up issue with the eval evidence.
 
 ## Goblin Wrangler Notes
 
