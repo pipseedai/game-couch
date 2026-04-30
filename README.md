@@ -36,6 +36,10 @@ This writes session metadata under:
 
 Set `GAME_COUCH_HOME=/path/to/dir` to use a different storage location.
 
+## Testable-stage direction
+
+The next stage is documented in [`docs/testable-stage-plan.md`](docs/testable-stage-plan.md): split coordinator, runner, plugin, and transport/RTC seams so a real `bigchoof` couch session can be tested without jumping straight to WebRTC or arbitrary remote shell execution.
+
 ## Share a manual moment
 
 Safest dry-run flow:

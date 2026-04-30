@@ -25,6 +25,8 @@ The first remote runner path will be SSH-first, with allowlisted operations, bec
 
 The design must keep a clean RTC/event seam so that a persistent runner channel, likely WebSocket over SSH tunnel, can be added later without rewriting plugins or session logic.
 
+For this ADR, “RTC seam” means an internal boundary for commands/events/results. It does **not** mean the testable stage must ship WebRTC, a signalling server, or a continuous media stream.
+
 WebRTC is deferred until a test session proves that continuous media or low-latency streaming is needed.
 
 ## Consequences
@@ -33,7 +35,15 @@ WebRTC is deferred until a test session proves that continuous media or low-late
 - Remote operations stay auditable and narrow.
 - Plugins should not know whether they run locally or remotely; runner plumbing owns that.
 - CLI/API surfaces should accept a host/runner target without leaking raw SSH commands everywhere.
+- Dry-run, fake-runner, and local-runner tests can prove most behaviour before touching `bigchoof`.
 - If the couch feel depends on live continuous presence, a later ADR should choose WebSocket/WebRTC explicitly.
+
+## Boundary invariants
+
+- The coordinator assembles moments and writes the journal; it does not execute raw remote commands.
+- The runner returns artifact/result metadata; it does not decide Discord wording or session policy.
+- The plugin supplies game/context semantics; it does not know whether capture happened locally, over SSH, or through a future event channel.
+- The transport receives an already-assembled moment payload; it does not capture screenshots or mutate runner state.
 
 ## Non-goals
 

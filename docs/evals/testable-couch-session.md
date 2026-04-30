@@ -13,6 +13,23 @@ This eval is about feel as much as plumbing: does it create the sense of Pip/Cod
 - A Discord couch room/thread exists or can be reused.
 - Remote runner or local fallback can capture a screenshot.
 - Dry-run mode has already passed.
+- The evaluator has a safe place to store the after-action note, such as `state/evals/<date>-couch-session.md`.
+
+## Dry-run rehearsal
+
+Run this before involving the real game/Discord path:
+
+```bash
+game-couch start --game generic-screen --channel "#game-couch" --player-label "Saff"
+game-couch share --note "dry-run moment" --screenshot ./fixtures/moment.png --transport dry-run
+```
+
+Confirm:
+
+- no Discord message was sent;
+- a session directory exists;
+- the moment is journaled;
+- the payload includes game id, player label, note, trigger, and media path.
 
 ## Script
 
@@ -30,6 +47,22 @@ This eval is about feel as much as plumbing: does it create the sense of Pip/Cod
 6. Review the local journal.
    - Confirm session start and both moments are preserved.
 7. Write a short after-action note.
+
+Use this after-action note shape:
+
+```markdown
+# Game Couch eval — YYYY-MM-DD
+
+- Game / scene:
+- Host / runner:
+- Discord target:
+- Moments triggered:
+- What felt sofa-like:
+- What broke flow:
+- What Pip/Coda could infer from the moment:
+- Next missing feature:
+- Follow-up issues:
+```
 
 ## Pass Signals
 

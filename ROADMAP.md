@@ -2,10 +2,11 @@
 
 ## Now
 
-- Follow the testable-stage plan in `docs/testable-stage-plan.md`.
-- Add remote runner/SSH tunnel support for `bigchoof`.
+- Keep the testable-stage plan in `docs/testable-stage-plan.md` as the implementation contract.
+- Build the remote runner seam for `bigchoof` with fake/local tests before live SSH.
+- Add remote `generic-screen` screenshot capture and artifact fetch.
 - Make Discord couch-room posting feel good enough for one real session.
-- Write and run the first manual couch-session eval.
+- Rehearse, then run, the first manual couch-session eval in `docs/evals/testable-couch-session.md`.
 
 ## Next
 
