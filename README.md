@@ -59,14 +59,25 @@ Moment payloads include:
 
 ## Discord config
 
-The MVP Discord transport posts via webhook:
+The MVP Discord transport posts via webhook. For the testable stage, create or pick the couch room/thread in Discord first, create a webhook for that target, then start Game Couch with the same target label so the session and journal name where the moment went:
 
 ```bash
 export GAME_COUCH_DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/..."
+game-couch start --game generic-screen --channel "#game-couch" --player-label "Saff"
 game-couch share --note "boss down" --screenshot ~/Desktop/moment.png --transport discord
 ```
 
+Moment posts include safe mention settings (`allowed_mentions.parse=[]`) and attach the screenshot/media file when the media path exists. If the file is missing, Game Couch still posts the structured text payload and records the missing media in delivery metadata.
+
 Do not commit webhook URLs or bot tokens. Tests and local development should prefer `--transport dry-run`.
+
+### Manual Discord media smoke
+
+1. Start with dry-run and inspect `dry-run-outbox.jsonl` to confirm note, player, game, session, trigger, timestamp, and media metadata.
+2. Set `GAME_COUCH_DISCORD_WEBHOOK_URL` for a private test channel/thread.
+3. Run `game-couch share --note "media smoke" --screenshot <png> --transport discord`.
+4. Confirm Discord shows one message with the screenshot attachment and no accidental pings.
+5. Inspect the session journal for the `moment.shared` event and Discord transport status.
 
 ## Plugin interface
 
