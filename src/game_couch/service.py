@@ -7,6 +7,7 @@ from .journal import Journal
 from .models import SessionContext, new_session_id, shape_moment_payload
 from .paths import couch_home, current_session_path, sessions_dir
 from .plugins.registry import load_plugin
+from .runner import make_runner
 from .transport import make_transport
 
 
@@ -15,6 +16,7 @@ def start_session(
     game_id: str,
     channel: str,
     player_label: str = "Player",
+    host: str | None = None,
     home: Path | None = None,
     force_new: bool = False,
 ) -> tuple[SessionContext, bool, dict]:
@@ -22,7 +24,7 @@ def start_session(
     current_path = current_session_path(home)
     if not force_new and current_path.exists():
         current = SessionContext.from_dict(json.loads(current_path.read_text(encoding="utf-8")))
-        if current.game_id == game_id and current.channel == channel and current.player_label == player_label:
+        if current.game_id == game_id and current.channel == channel and current.player_label == player_label and current.host == host:
             plugin_context = load_plugin(game_id).start_context(current)
             Journal(current).append_session_started(current, reused=True)
             return current, True, plugin_context
@@ -35,6 +37,7 @@ def start_session(
         game_id=game_id,
         channel=channel,
         player_label=player_label,
+        host=host,
         journal_path=str(session_dir / "journal.jsonl"),
     )
     plugin_context = load_plugin(game_id).start_context(session)
@@ -58,6 +61,8 @@ def share_moment(
     screenshot: Path | None,
     trigger: str = "manual",
     transport_name: str = "dry-run",
+    runner_name: str | None = None,
+    host: str | None = None,
     home: Path | None = None,
 ) -> tuple[SessionContext, dict, dict]:
     home = home or couch_home()
@@ -67,13 +72,17 @@ def share_moment(
     screenshot_path = screenshot
     if screenshot_path is None:
         captures_dir = sessions_dir(home) / session.session_id / "captures"
-        screenshot_path = plugin.capture_screenshot(captures_dir / f"{trigger}.png")
+        runner = make_runner(runner_name, host=host or (session.host if runner_name is None else None))
+        capture_result = runner.capture_screenshot(captures_dir / f"{trigger}.png", trigger=trigger)
+        screenshot_path = Path(capture_result.artifact_path)
     else:
         screenshot_path = screenshot_path.expanduser().resolve()
         if not screenshot_path.exists():
             raise FileNotFoundError(f"Screenshot does not exist: {screenshot_path}")
 
     plugin_context = plugin.capture_moment_context(session=session, screenshot_path=screenshot_path)
+    if screenshot is None:
+        plugin_context["runner"] = capture_result.to_dict()
     payload = shape_moment_payload(
         session=session,
         trigger=trigger,

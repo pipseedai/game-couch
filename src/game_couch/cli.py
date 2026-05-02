@@ -17,6 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
     start.add_argument("--game", required=True, choices=available_plugins())
     start.add_argument("--channel", required=True, help="Discord channel/thread target label or id.")
     start.add_argument("--player-label", default="Player")
+    start.add_argument("--host", default=None, help="Named remote host/runner target, e.g. bigchoof.")
     start.add_argument("--new", action="store_true", help="Force a new session instead of reusing the current matching one.")
     start.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
 
@@ -25,6 +26,8 @@ def build_parser() -> argparse.ArgumentParser:
     share.add_argument("--screenshot", type=Path, default=None, help="Existing screenshot/media path. If omitted, generic-screen tries local capture.")
     share.add_argument("--trigger", default="manual")
     share.add_argument("--transport", choices=["dry-run", "discord"], default="dry-run")
+    share.add_argument("--runner", choices=["local", "fake"], default=None, help="Runner to use when --screenshot is omitted.")
+    share.add_argument("--host", default=None, help="Named SSH runner target; overrides session host for this share.")
     share.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
 
     sub.add_parser("plugins", help="List available game plugins.")
@@ -41,6 +44,7 @@ def main(argv: list[str] | None = None) -> int:
                 channel=args.channel,
                 player_label=args.player_label,
                 force_new=args.new,
+                host=args.host,
             )
             output = {"session": session.to_dict(), "reused": reused, "plugin_context": plugin_context}
             if args.json:
@@ -56,6 +60,8 @@ def main(argv: list[str] | None = None) -> int:
                 screenshot=args.screenshot,
                 trigger=args.trigger,
                 transport_name=args.transport,
+                runner_name=args.runner,
+                host=args.host,
             )
             output = {"session": session.to_dict(), "payload": payload, "transport": result}
             if args.json:
