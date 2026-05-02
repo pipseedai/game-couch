@@ -44,7 +44,21 @@ Safest dry-run flow:
 game-couch share --note "look at this jump" --screenshot ~/Desktop/moment.png --transport dry-run
 ```
 
-If `--screenshot` is omitted, `generic-screen` attempts a one-shot macOS `screencapture`. On other systems, pass a screenshot path explicitly.
+If `--screenshot` is omitted, Game Couch asks a runner to capture one screenshot. The default `local` runner uses one-shot macOS `screencapture`; tests can use `--runner fake` without touching the real screen.
+
+## Remote runner seam
+
+A session can remember a named host, and `share` can target a named SSH runner when no screenshot path is provided:
+
+```bash
+export GAME_COUCH_HOST_BIGCHOOF_SSH="saff@bigchoof"
+export GAME_COUCH_HOST_BIGCHOOF_REMOTE_DIR="~/game-couch-captures"  # optional
+
+game-couch start --game generic-screen --channel "#game-couch" --player-label "Saff" --host bigchoof
+game-couch share --note "look at this jump" --transport dry-run
+```
+
+The SSH runner has an allowlisted first operation only: `capture_screenshot`. It constructs `ssh` + `scp` commands for that operation and does not expose arbitrary remote shell passthrough.
 
 Moment payloads include:
 

@@ -22,6 +22,7 @@ class SessionContext:
     game_id: str
     channel: str
     player_label: str = "Player"
+    host: str | None = None
     created_at: str = field(default_factory=utc_now_iso)
     journal_path: str | None = None
 
